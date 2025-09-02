@@ -3,11 +3,11 @@
 # ===============================
 #   ASM Build & Run Helper
 #   Author: UzairDeveloper223
-#   Version: 1.0.1
+#   Version: 1.0.2
 #   Enhanced Edition
 # ===============================
 
-VERSION="1.0.1"
+VERSION="1.0.2"
 SCRIPT_NAME="asmbuilder"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 CACHE_DIR="$HOME/.cache/asmbuilder"
@@ -218,34 +218,72 @@ show_version() {
     exit 0
 }
 
+# Get installed script path
+get_installed_path() {
+    # Check if script is in PATH
+    local script_path=$(which "$SCRIPT_NAME" 2>/dev/null)
+
+    if [ -n "$script_path" ] && [ -f "$script_path" ]; then
+        echo "$script_path"
+    else
+        # Fallback to current script path
+        echo "$0"
+    fi
+}
+
 # Repair function
 repair_script() {
     print_info "Starting repair process..."
-    
+
+    # Get installed script path
+    local installed_path=$(get_installed_path)
+    print_info "Detected installed script: $installed_path"
+
     # Backup current configuration
     if [ -d "$CONFIG_DIR" ]; then
         print_info "Backing up configuration..."
         cp -r "$CONFIG_DIR" "$CONFIG_DIR.backup.$(date +%Y%m%d_%H%M%S)"
     fi
-    
+
     # Clear cache
     print_info "Clearing cache..."
     rm -rf "$CACHE_DIR"/*
-    
+
     # Recheck dependencies
     check_deps --auto-install
-    
+
     # Download latest version
     print_info "Downloading latest version..."
-    if curl -s -o "/tmp/$SCRIPT_NAME.new" "https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder"; then
-        mv "/tmp/$SCRIPT_NAME.new" "$0"
-        chmod +x "$0"
-        print_success "Repair completed successfully!"
+    local temp_file="/tmp/$SCRIPT_NAME.repair.$$"
+
+    if curl -s -o "$temp_file" "$GITHUB_RAW$SCRIPT_NAME"; then
+        # Backup current installed version
+        if [ -f "$installed_path" ]; then
+            cp "$installed_path" "$installed_path.backup.$(date +%Y%m%d_%H%M%S)"
+            print_info "Backed up current version"
+        fi
+
+        # Replace installed version
+        if [ -w "$installed_path" ] || sudo -n true 2>/dev/null; then
+            if [ -w "$installed_path" ]; then
+                mv "$temp_file" "$installed_path"
+            else
+                sudo mv "$temp_file" "$installed_path"
+            fi
+            chmod +x "$installed_path"
+            print_success "Repair completed successfully!"
+            print_warning "Please restart your terminal or run 'source ~/.bashrc' to use the updated version"
+        else
+            print_error "Cannot write to $installed_path. Please run with sudo."
+            rm -f "$temp_file"
+            exit 1
+        fi
     else
         print_error "Failed to download latest version"
+        rm -f "$temp_file"
         exit 1
     fi
-    
+
     # Reinitialize
     init_dirs
     print_success "Script repaired and ready to use!"
@@ -255,34 +293,58 @@ repair_script() {
 # Update function with progress
 update_script() {
     print_info "Checking for updates..."
-    
+
     # Get remote version
     remote_version=$(curl -s "$REMOTE_VERSION_FILE" 2>/dev/null)
-    
+
     if [ -z "$remote_version" ]; then
         print_error "Failed to fetch remote version. Check your internet connection."
         exit 1
     fi
-    
+
     if [ "$remote_version" = "$VERSION" ]; then
         print_success "You are already on the latest version ($VERSION)"
         exit 0
     else
         print_info "New version available: $remote_version"
         print_info "Current version: $VERSION"
-        
+
         echo -e "${YELLOW}Would you like to update? (y/n)${NC}"
         read -r response
-        
+
         if [[ "$response" =~ ^[Yy]$ ]]; then
+            # Get installed script path
+            local installed_path=$(get_installed_path)
+            print_info "Detected installed script: $installed_path"
+
             print_info "Downloading update..."
-            if curl -s -o "/tmp/$SCRIPT_NAME.new" "$GITHUB_RAW/$SCRIPT_NAME"; then
-                mv "/tmp/$SCRIPT_NAME.new" "$0"
-                chmod +x "$0"
-                print_success "Updated to version $remote_version"
-                print_info "Please restart the script to use the new version"
+            local temp_file="/tmp/$SCRIPT_NAME.update.$$"
+
+            if curl -s -o "$temp_file" "$GITHUB_RAW$SCRIPT_NAME"; then
+                # Backup current installed version
+                if [ -f "$installed_path" ]; then
+                    cp "$installed_path" "$installed_path.backup.$(date +%Y%m%d_%H%M%S)"
+                    print_info "Backed up current version"
+                fi
+
+                # Replace installed version
+                if [ -w "$installed_path" ] || sudo -n true 2>/dev/null; then
+                    if [ -w "$installed_path" ]; then
+                        mv "$temp_file" "$installed_path"
+                    else
+                        sudo mv "$temp_file" "$installed_path"
+                    fi
+                    chmod +x "$installed_path"
+                    print_success "Updated to version $remote_version"
+                    print_warning "Please restart your terminal or run 'source ~/.bashrc' to use the updated version"
+                else
+                    print_error "Cannot write to $installed_path. Please run with sudo."
+                    rm -f "$temp_file"
+                    exit 1
+                fi
             else
                 print_error "Update failed"
+                rm -f "$temp_file"
                 exit 1
             fi
         fi
