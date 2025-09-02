@@ -7,8 +7,8 @@
 # ===============================
 
 VERSION="1.0.0"
-GITHUB_RAW="https://raw.githubusercontent.com/uzairdeveloper223/asm-builder/main"
-SCRIPT_NAME="asmbuild.sh"
+GITHUB_RAW="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Runner-For-Linux/refs/heads/main/"
+SCRIPT_NAME="asmrunner.sh"
 REMOTE_VERSION_FILE="$GITHUB_RAW/version.txt"
 
 check_deps() {
