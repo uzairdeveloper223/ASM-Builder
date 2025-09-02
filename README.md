@@ -114,6 +114,7 @@ rm -rf ~/.cache/asmbuilder/
 
 The uninstaller automatically removes:
 - ✅ Main ASM Builder script from `/usr/local/bin/`
+- ✅ Man page from system man directories
 - ✅ Configuration directory (`~/.config/asmbuilder/`)
 - ✅ Cache directory (`~/.cache/asmbuilder/`)
 - ✅ Desktop entry (Linux only)

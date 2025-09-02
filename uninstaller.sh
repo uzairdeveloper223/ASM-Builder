@@ -18,6 +18,7 @@ NC='\033[0m'
 # Configuration
 SCRIPT_NAME="asmbuilder"
 INSTALL_DIR="/usr/local/bin"
+MAN_DIR="/usr/local/share/man/man1"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 CACHE_DIR="$HOME/.cache/asmbuilder"
 BACKUP_DIR="$HOME/.asmbuilder-backups"
@@ -223,6 +224,49 @@ remove_desktop_entry() {
     fi
 }
 
+# Find and remove man page
+remove_manpage() {
+    print_info "Removing man page..."
+
+    # Check common man page locations
+    local manpage_paths=(
+        "/usr/local/share/man/man1/asmbuilder.1"
+        "/usr/local/man/man1/asmbuilder.1"
+        "/usr/share/man/man1/asmbuilder.1"
+        "$HOME/.local/share/man/man1/asmbuilder.1"
+    )
+
+    local manpage_found=false
+
+    for manpage_path in "${manpage_paths[@]}"; do
+        if [ -f "$manpage_path" ]; then
+            print_info "Found man page at: $manpage_path"
+
+            if [ -w "$manpage_path" ]; then
+                rm -f "$manpage_path"
+                print_success "Man page removed successfully"
+            else
+                sudo rm -f "$manpage_path"
+                print_success "Man page removed successfully (with sudo)"
+            fi
+
+            manpage_found=true
+
+            # Update man database if mandb is available
+            if command -v mandb &>/dev/null; then
+                sudo mandb >/dev/null 2>&1
+                print_info "Man database updated"
+            fi
+
+            break
+        fi
+    done
+
+    if [ "$manpage_found" = false ]; then
+        print_info "No man page found"
+    fi
+}
+
 # Clean PATH (if needed)
 clean_path() {
     local OS=$(detect_os)
@@ -268,6 +312,7 @@ show_summary() {
     echo ""
     echo -e "${CYAN}Uninstallation Summary:${NC}"
     echo -e "  • Script removed from system"
+    echo -e "  • Man page removed from system"
     echo -e "  • Configuration files removed"
     echo -e "  • Cache files removed"
     echo -e "  • Desktop entry removed (if existed)"
@@ -330,7 +375,7 @@ main() {
 
     # Progress tracking
     local step=1
-    local total_steps=7
+    local total_steps=8
 
     # Create backup
     progress_bar $step $total_steps
@@ -340,6 +385,11 @@ main() {
     # Remove script
     progress_bar $step $total_steps
     remove_script
+    step=$((step + 1))
+
+    # Remove man page
+    progress_bar $step $total_steps
+    remove_manpage
     step=$((step + 1))
 
     # Remove configuration

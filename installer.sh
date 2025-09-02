@@ -18,9 +18,11 @@ NC='\033[0m'
 # Configuration
 SCRIPT_NAME="asmbuilder"
 INSTALL_DIR="/usr/local/bin"
+MAN_DIR="/usr/local/share/man/man1"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 TEMP_DIR="/tmp/asmbuilder_install_$$"
 GITHUB_URL="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder"
+MANPAGE_URL="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder.1"
 
 # Progress bar function
 progress_bar() {
@@ -257,6 +259,56 @@ EOF
     print_success "Installation complete!"
 }
 
+# Install man page
+install_manpage() {
+    print_info "Installing man page..."
+    progress_bar 11 12
+
+    # Create man directory if it doesn't exist
+    if [ ! -d "$MAN_DIR" ]; then
+        mkdir -p "$MAN_DIR"
+    fi
+
+    # Check if we have a local man page
+    if [ -f "./asmbuilder.1" ]; then
+        print_info "Using local man page..."
+        cp "./asmbuilder.1" "$TEMP_DIR/asmbuilder.1"
+    else
+        # Download the man page
+        print_info "Downloading man page from GitHub..."
+        if command -v curl &>/dev/null; then
+            curl -sL -o "$TEMP_DIR/asmbuilder.1" "$MANPAGE_URL" &
+            spinner $!
+        elif command -v wget &>/dev/null; then
+            wget -q -O "$TEMP_DIR/asmbuilder.1" "$MANPAGE_URL" &
+            spinner $!
+        else
+            print_warning "Neither curl nor wget found. Skipping man page installation."
+            return
+        fi
+    fi
+
+    progress_bar 12 12
+
+    # Install man page
+    if [ -f "$TEMP_DIR/asmbuilder.1" ]; then
+        if [ "$EUID" -eq 0 ] || [ "$MAN_DIR" = "$HOME/.local/share/man/man1" ]; then
+            mv "$TEMP_DIR/asmbuilder.1" "$MAN_DIR/asmbuilder.1"
+        else
+            sudo mv "$TEMP_DIR/asmbuilder.1" "$MAN_DIR/asmbuilder.1"
+        fi
+
+        # Update man database
+        if command -v mandb &>/dev/null; then
+            sudo mandb >/dev/null 2>&1
+        fi
+
+        print_success "Man page installed!"
+    else
+        print_warning "Man page installation failed"
+    fi
+}
+
 # Setup PATH if needed
 setup_path() {
     local OS=$(detect_os)
@@ -331,8 +383,9 @@ main() {
     echo "  2. Install required dependencies"
     echo "  3. Download ASM Builder"
     echo "  4. Install to $INSTALL_DIR"
-    echo "  5. Setup configuration"
-    echo "  6. Update PATH if needed"
+    echo "  5. Install man page"
+    echo "  6. Setup configuration"
+    echo "  7. Update PATH if needed"
     echo ""
     
     echo -e "${YELLOW}Continue with installation? (y/n)${NC}"
@@ -355,10 +408,13 @@ main() {
     
     # Install script
     install_script
-    
+
+    # Install man page
+    install_manpage
+
     # Setup PATH
     setup_path
-    
+
     # Create desktop entry
     create_desktop_entry
     
@@ -371,8 +427,9 @@ main() {
     echo ""
     echo -e "${CYAN}Installation Summary:${NC}"
     echo -e "  • Installed to: ${GREEN}$INSTALL_DIR/$SCRIPT_NAME${NC}"
+    echo -e "  • Man page: ${GREEN}$MAN_DIR/asmbuilder.1${NC}"
     echo -e "  • Config directory: ${GREEN}$CONFIG_DIR${NC}"
-    echo -e "  • Version: ${GREEN}1.0.0${NC}"
+    echo -e "  • Version: ${GREEN}1.0.2${NC}"
     echo ""
     echo -e "${CYAN}Usage:${NC}"
     echo -e "  ${GREEN}$SCRIPT_NAME <file.asm>${NC}    - Build and run an assembly file"
