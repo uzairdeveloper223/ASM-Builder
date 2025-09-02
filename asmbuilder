@@ -83,10 +83,10 @@ check_deps() {
     print_info "Checking required dependencies..."
     local missing=()
     local OS=$(detect_os)
-    
+
     # Define required dependencies based on OS
-    local deps=("nasm" "gcc")
-    
+    local deps=("nasm" "gcc" "ld")
+
     if [ "$OS" = "Linux" ] || [ "$OS" = "Mac" ]; then
         deps+=("curl" "make")
     fi
@@ -331,7 +331,7 @@ watch_mode() {
 benchmark() {
     local program="$1"
     print_info "Benchmarking $program..."
-    
+
     local times=()
     for i in {1..5}; do
         local start=$(date +%s%N)
@@ -341,15 +341,35 @@ benchmark() {
         times+=($duration)
         echo -e "${CYAN}Run $i: ${duration}ms${NC}"
     done
-    
+
     # Calculate average
     local sum=0
     for time in "${times[@]}"; do
         sum=$((sum + time))
     done
     local avg=$((sum / 5))
-    
+
     print_success "Average execution time: ${avg}ms"
+}
+
+# Detect ASM file type
+detect_asm_type() {
+    local file="$1"
+
+    # Check if file contains 'global main' (GCC compatible)
+    if grep -q "global main" "$file"; then
+        echo "gcc"
+        return
+    fi
+
+    # Check if file contains 'global _start' (LD compatible)
+    if grep -q "global _start" "$file"; then
+        echo "ld"
+        return
+    fi
+
+    # Default to GCC if neither is found (assume GCC style)
+    echo "gcc"
 }
 
 # Enhanced build and run function
@@ -368,11 +388,15 @@ build_and_run() {
     
     print_info "Building $file..."
     print_info "Target: $output | Arch: $arch-bit | Syntax: $syntax | Optimization: O$optimize"
-    
+
+    # Detect ASM file type first
+    local asm_type=$(detect_asm_type "$file")
+    print_info "Detected ASM type: $asm_type"
+
     # Determine NASM format based on OS and architecture
     local nasm_format=""
     local OS=$(detect_os)
-    
+
     case "$OS" in
         Linux)
             case "$arch" in
@@ -396,27 +420,77 @@ build_and_run() {
             esac
             ;;
     esac
-    
+
     # Assemble
     print_info "Assembling..."
     local nasm_cmd="nasm -f $nasm_format"
     [ "$DEBUG" = "1" ] && nasm_cmd="$nasm_cmd -g -F dwarf"
-    
+
+    # For GCC-compatible files, add .note.GNU-stack section to avoid warnings
+    local original_file="$file"
+    if [ "$asm_type" = "gcc" ]; then
+        # Create a temporary file with the .note.GNU-stack section added
+        local temp_file="$file.tmp"
+        cp "$file" "$temp_file"
+        echo "" >> "$temp_file"
+        echo "section .note.GNU-stack noalloc noexec nowrite progbits" >> "$temp_file"
+        file="$temp_file"
+    fi
+
     if ! $nasm_cmd "$file" -o "$output.o"; then
         print_error "Assembly failed"
+        # Clean up temporary file if it was created
+        [ -f "$file.tmp" ] && rm -f "$file.tmp"
         exit 1
     fi
-    
+
+    # Clean up temporary file if it was created
+    if [ -f "$file.tmp" ]; then
+        rm -f "$file.tmp"
+        file="$original_file"  # Restore original file path for linking
+    fi
+
     # Link
     print_info "Linking..."
-    local gcc_cmd="gcc -O$optimize"
-    [ "$DEBUG" = "1" ] && gcc_cmd="$gcc_cmd -g"
-    [ "$STATIC" = "1" ] && gcc_cmd="$gcc_cmd -static"
-    [ "$STRIP" = "1" ] && gcc_cmd="$gcc_cmd -s"
-    [ "$PIE" = "1" ] && gcc_cmd="$gcc_cmd -pie" || gcc_cmd="$gcc_cmd -no-pie"
-    [ -n "$LIBS" ] && gcc_cmd="$gcc_cmd -l${LIBS//,/ -l}"
-    
-    if ! $gcc_cmd "$output.o" -o "$output"; then
+    local link_cmd=""
+    local linker=""
+
+    if [ "$asm_type" = "gcc" ]; then
+        linker="GCC"
+        link_cmd="gcc -O$optimize"
+        [ "$DEBUG" = "1" ] && link_cmd="$link_cmd -g"
+        [ "$STATIC" = "1" ] && link_cmd="$link_cmd -static"
+        [ "$STRIP" = "1" ] && link_cmd="$link_cmd -s"
+        [ "$PIE" = "1" ] && link_cmd="$link_cmd -pie" || link_cmd="$link_cmd -no-pie"
+        [ -n "$LIBS" ] && link_cmd="$link_cmd -l${LIBS//,/ -l}"
+    else
+        linker="LD"
+        link_cmd="ld"
+        [ "$DEBUG" = "1" ] && link_cmd="$link_cmd -g"
+        [ "$STRIP" = "1" ] && link_cmd="$link_cmd -s"
+
+        # Determine LD format based on OS and architecture
+        case "$OS" in
+            Linux)
+                case "$arch" in
+                    32) link_cmd="$link_cmd -m elf_i386";;
+                    64) link_cmd="$link_cmd -m elf_x86_64";;
+                    *) link_cmd="$link_cmd -m elf_x86_64";;
+                esac
+                ;;
+            Mac)
+                case "$arch" in
+                    32) link_cmd="$link_cmd -arch i386";;
+                    64) link_cmd="$link_cmd -arch x86_64";;
+                    *) link_cmd="$link_cmd -arch x86_64";;
+                esac
+                ;;
+        esac
+    fi
+
+    print_info "Using linker: $linker"
+
+    if ! $link_cmd "$output.o" -o "$output"; then
         print_error "Linking failed"
         exit 1
     fi

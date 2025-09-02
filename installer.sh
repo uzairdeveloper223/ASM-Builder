@@ -140,7 +140,7 @@ install_dependencies() {
     progress_bar 1 10
     
     # Check each dependency
-    for dep in nasm gcc make curl; do
+    for dep in nasm gcc ld make curl; do
         if ! command -v $dep &>/dev/null; then
             deps_to_install+=($dep)
         fi

@@ -12,11 +12,12 @@ A powerful, cross-platform assembly language build and run tool that simplifies 
 - 🔄 **Watch Mode**: Automatically rebuild when source files change
 - 📊 **Benchmarking**: Measure execution performance of compiled programs
 - 🐛 **Debug Support**: Built-in debugging with GDB-compatible output
-- 📦 **Auto-Dependency Installation**: Automatically install required tools (NASM, GCC, etc.)
+- 📦 **Auto-Dependency Installation**: Automatically install required tools (NASM, GCC, LD, etc.)
 - 🔄 **Self-Updating**: Check for and install updates automatically
 - 🧹 **Clean Builds**: Remove build artifacts with ease
 - 📋 **Comprehensive Logging**: Detailed logs for troubleshooting
 - 🎨 **Colorful Output**: Enhanced terminal output with colors and progress indicators
+- 🔍 **Automatic Linker Detection**: Automatically detects GCC-compatible or LD-compatible assembly files
 
 ## Installation
 
@@ -50,8 +51,25 @@ The installer will automatically install required dependencies. Manual installat
 
 - **NASM**: Netwide Assembler
 - **GCC**: GNU Compiler Collection
+- **LD**: GNU Linker
 - **make**: Build automation tool
 - **curl**: For updates and downloads
+
+### Automatic Linker Detection
+
+ASM Builder automatically detects the type of assembly file and chooses the appropriate linker:
+
+- **GCC-compatible files**: Files containing `global main` (uses GCC linker)
+  - Supports C library functions and external linking
+  - Automatically adds `.note.GNU-stack` section to prevent linker warnings
+  - Example: Files that use `printf`, `scanf`, etc.
+
+- **LD-compatible files**: Files containing `global _start` (uses LD linker)
+  - Direct system calls without C library dependencies
+  - Smaller binaries, faster execution
+  - Example: Files that use `syscall` instructions
+
+The tool automatically analyzes your assembly file and selects the optimal linker for your code structure, ensuring clean builds without warnings.
 
 ## Usage
 
