@@ -1,0 +1,584 @@
+#!/bin/bash
+
+# ===============================
+#   ASM Build & Run Helper
+#   Author: UzairDeveloper223
+#   Version: 1.0.0
+#   Enhanced Edition
+# ===============================
+
+VERSION="1.0.0"
+SCRIPT_NAME="asmbuilder"
+CONFIG_DIR="$HOME/.config/asmbuilder"
+CACHE_DIR="$HOME/.cache/asmbuilder"
+LOG_FILE="$CONFIG_DIR/asmbuilder.log"
+GITHUB_RAW="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Runner-For-Linux/refs/heads/main/"
+REMOTE_VERSION_FILE="$GITHUB_RAW/version.txt"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Initialize directories
+init_dirs() {
+    mkdir -p "$CONFIG_DIR" "$CACHE_DIR"
+    touch "$LOG_FILE"
+}
+
+# Logging function
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+}
+
+# Pretty print functions
+print_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+    log "INFO: $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[✓]${NC} $1"
+    log "SUCCESS: $1"
+}
+
+print_error() {
+    echo -e "${RED}[✗]${NC} $1"
+    log "ERROR: $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[⚠]${NC} $1"
+    log "WARNING: $1"
+}
+
+# Detect OS
+detect_os() {
+    case "$(uname -s)" in
+        Linux*)     OS="Linux";;
+        Darwin*)    OS="Mac";;
+        CYGWIN*|MINGW*|MSYS*) OS="Windows";;
+        *)          OS="UNKNOWN";;
+    esac
+    echo "$OS"
+}
+
+# Check architecture
+detect_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64) ARCH="64";;
+        i386|i686)    ARCH="32";;
+        arm64|aarch64) ARCH="arm64";;
+        *)            ARCH="unknown";;
+    esac
+    echo "$ARCH"
+}
+
+# Check dependencies with auto-install option
+check_deps() {
+    print_info "Checking required dependencies..."
+    local missing=()
+    local OS=$(detect_os)
+    
+    # Define required dependencies based on OS
+    local deps=("nasm" "gcc")
+    
+    if [ "$OS" = "Linux" ] || [ "$OS" = "Mac" ]; then
+        deps+=("curl" "make")
+    fi
+    
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &>/dev/null; then
+            print_warning "Missing dependency: $dep"
+            missing+=("$dep")
+        else
+            print_success "$dep is installed"
+        fi
+    done
+    
+    if [ ${#missing[@]} -gt 0 ]; then
+        print_warning "Missing dependencies: ${missing[*]}"
+        
+        if [ "$1" = "--auto-install" ]; then
+            install_deps "${missing[@]}"
+        else
+            echo -e "${YELLOW}Would you like to install missing dependencies? (y/n)${NC}"
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                install_deps "${missing[@]}"
+            else
+                print_error "Please install the missing dependencies manually."
+                exit 1
+            fi
+        fi
+    else
+        print_success "All dependencies are installed!"
+    fi
+}
+
+# Install missing dependencies
+install_deps() {
+    local OS=$(detect_os)
+    print_info "Installing missing dependencies..."
+    
+    case "$OS" in
+        Linux)
+            if command -v apt-get &>/dev/null; then
+                sudo apt-get update && sudo apt-get install -y "$@"
+            elif command -v yum &>/dev/null; then
+                sudo yum install -y "$@"
+            elif command -v pacman &>/dev/null; then
+                sudo pacman -S --noconfirm "$@"
+            elif command -v dnf &>/dev/null; then
+                sudo dnf install -y "$@"
+            else
+                print_error "Unsupported package manager"
+                exit 1
+            fi
+            ;;
+        Mac)
+            if command -v brew &>/dev/null; then
+                brew install "$@"
+            else
+                print_error "Homebrew not found. Please install it first."
+                exit 1
+            fi
+            ;;
+        Windows)
+            print_warning "Please install dependencies manually on Windows"
+            print_info "You can use tools like MSYS2, Cygwin, or WSL"
+            ;;
+    esac
+}
+
+# Enhanced usage function
+usage() {
+    cat <<EOF
+${CYAN}╔══════════════════════════════════════════════════════════════╗
+║                   ASM Builder v$VERSION                       ║
+║                 Enhanced Multi-Platform Edition               ║
+╚══════════════════════════════════════════════════════════════╝${NC}
+
+${GREEN}Usage:${NC} $SCRIPT_NAME [options] <file.asm>
+
+${YELLOW}Options:${NC}
+  -h, --help              Show this help message
+  -v, --version           Show script version
+  -u, --update            Check for updates and install if available
+  -r, --repair            Repair and reinstall the builder
+  -c, --clean             Clean build artifacts
+  -d, --debug             Enable debug mode
+  -o, --output <name>     Specify output filename
+  -O, --optimize <level>  Set optimization level (0-3)
+  -A, --arch <arch>       Target architecture (32/64/arm64)
+  -S, --syntax <syntax>   Assembly syntax (intel/att)
+  -l, --link <libs>       Link with libraries (comma-separated)
+  -w, --watch             Watch file for changes and rebuild
+  -b, --benchmark         Benchmark the compiled program
+  -p, --profile           Generate profiling information
+  --install-deps          Auto-install missing dependencies
+  --show-log              Display log file
+  --clear-cache           Clear cache directory
+  --config                Open configuration
+
+${YELLOW}Build Options:${NC}
+  --static                Build static binary
+  --strip                 Strip symbols from binary
+  --pie                   Build position-independent executable
+  --no-pie                Disable PIE (default)
+
+${YELLOW}Examples:${NC}
+  $SCRIPT_NAME hello.asm
+  $SCRIPT_NAME -o myprogram -O2 program.asm
+  $SCRIPT_NAME -A 32 -S intel code.asm
+  $SCRIPT_NAME -w -d program.asm
+  $SCRIPT_NAME --repair
+
+${CYAN}Author:${NC} UzairDeveloper223
+${CYAN}Email:${NC} contact@uzair.is-a.dev
+${CYAN}Website:${NC} uzair.is-a.dev
+
+EOF
+    exit 0
+}
+
+# Show version with system info
+show_version() {
+    echo -e "${CYAN}╔══════════════════════════════════════╗"
+    echo -e "║     ASM Builder Information          ║"
+    echo -e "╚══════════════════════════════════════╝${NC}"
+    echo -e "${GREEN}Version:${NC} $VERSION"
+    echo -e "${GREEN}OS:${NC} $(detect_os)"
+    echo -e "${GREEN}Architecture:${NC} $(detect_arch)"
+    echo -e "${GREEN}Config Dir:${NC} $CONFIG_DIR"
+    echo -e "${GREEN}Cache Dir:${NC} $CACHE_DIR"
+    echo -e "${GREEN}Log File:${NC} $LOG_FILE"
+    exit 0
+}
+
+# Repair function
+repair_script() {
+    print_info "Starting repair process..."
+    
+    # Backup current configuration
+    if [ -d "$CONFIG_DIR" ]; then
+        print_info "Backing up configuration..."
+        cp -r "$CONFIG_DIR" "$CONFIG_DIR.backup.$(date +%Y%m%d_%H%M%S)"
+    fi
+    
+    # Clear cache
+    print_info "Clearing cache..."
+    rm -rf "$CACHE_DIR"/*
+    
+    # Recheck dependencies
+    check_deps --auto-install
+    
+    # Download latest version
+    print_info "Downloading latest version..."
+    if curl -s -o "/tmp/$SCRIPT_NAME.new" "$GITHUB_RAW/$SCRIPT_NAME"; then
+        mv "/tmp/$SCRIPT_NAME.new" "$0"
+        chmod +x "$0"
+        print_success "Repair completed successfully!"
+    else
+        print_error "Failed to download latest version"
+        exit 1
+    fi
+    
+    # Reinitialize
+    init_dirs
+    print_success "Script repaired and ready to use!"
+    exit 0
+}
+
+# Update function with progress
+update_script() {
+    print_info "Checking for updates..."
+    
+    # Get remote version
+    remote_version=$(curl -s "$REMOTE_VERSION_FILE" 2>/dev/null)
+    
+    if [ -z "$remote_version" ]; then
+        print_error "Failed to fetch remote version. Check your internet connection."
+        exit 1
+    fi
+    
+    if [ "$remote_version" = "$VERSION" ]; then
+        print_success "You are already on the latest version ($VERSION)"
+        exit 0
+    else
+        print_info "New version available: $remote_version"
+        print_info "Current version: $VERSION"
+        
+        echo -e "${YELLOW}Would you like to update? (y/n)${NC}"
+        read -r response
+        
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            print_info "Downloading update..."
+            if curl -s -o "/tmp/$SCRIPT_NAME.new" "$GITHUB_RAW/$SCRIPT_NAME"; then
+                mv "/tmp/$SCRIPT_NAME.new" "$0"
+                chmod +x "$0"
+                print_success "Updated to version $remote_version"
+                print_info "Please restart the script to use the new version"
+            else
+                print_error "Update failed"
+                exit 1
+            fi
+        fi
+    fi
+    exit 0
+}
+
+# Clean build artifacts
+clean_artifacts() {
+    local base="$1"
+    print_info "Cleaning build artifacts for $base..."
+    
+    for ext in o out exe; do
+        [ -f "$base.$ext" ] && rm -f "$base.$ext" && print_success "Removed $base.$ext"
+    done
+    
+    [ -f "$base" ] && rm -f "$base" && print_success "Removed $base"
+    print_success "Clean complete!"
+}
+
+# Watch mode
+watch_mode() {
+    local file="$1"
+    shift
+    local args="$@"
+    
+    print_info "Entering watch mode for $file"
+    print_info "Press Ctrl+C to exit"
+    
+    local last_mod=""
+    while true; do
+        local current_mod=$(stat -c %Y "$file" 2>/dev/null || stat -f %m "$file" 2>/dev/null)
+        
+        if [ "$current_mod" != "$last_mod" ]; then
+            clear
+            echo -e "${CYAN}[$(date '+%H:%M:%S')] File changed, rebuilding...${NC}"
+            build_and_run "$file" $args
+            last_mod="$current_mod"
+        fi
+        
+        sleep 1
+    done
+}
+
+# Benchmark function
+benchmark() {
+    local program="$1"
+    print_info "Benchmarking $program..."
+    
+    local times=()
+    for i in {1..5}; do
+        local start=$(date +%s%N)
+        "./$program" > /dev/null 2>&1
+        local end=$(date +%s%N)
+        local duration=$((($end - $start) / 1000000))
+        times+=($duration)
+        echo -e "${CYAN}Run $i: ${duration}ms${NC}"
+    done
+    
+    # Calculate average
+    local sum=0
+    for time in "${times[@]}"; do
+        sum=$((sum + time))
+    done
+    local avg=$((sum / 5))
+    
+    print_success "Average execution time: ${avg}ms"
+}
+
+# Enhanced build and run function
+build_and_run() {
+    local file="$1"
+    local base=$(basename "$file" .asm)
+    local output="${OUTPUT:-$base}"
+    local arch="${ARCH:-64}"
+    local syntax="${SYNTAX:-intel}"
+    local optimize="${OPTIMIZE:-0}"
+    
+    if [ ! -f "$file" ]; then
+        print_error "File not found: $file"
+        exit 1
+    fi
+    
+    print_info "Building $file..."
+    print_info "Target: $output | Arch: $arch-bit | Syntax: $syntax | Optimization: O$optimize"
+    
+    # Determine NASM format based on OS and architecture
+    local nasm_format=""
+    local OS=$(detect_os)
+    
+    case "$OS" in
+        Linux)
+            case "$arch" in
+                32) nasm_format="elf32";;
+                64) nasm_format="elf64";;
+                *) nasm_format="elf64";;
+            esac
+            ;;
+        Mac)
+            case "$arch" in
+                32) nasm_format="macho32";;
+                64) nasm_format="macho64";;
+                *) nasm_format="macho64";;
+            esac
+            ;;
+        Windows)
+            case "$arch" in
+                32) nasm_format="win32";;
+                64) nasm_format="win64";;
+                *) nasm_format="win64";;
+            esac
+            ;;
+    esac
+    
+    # Assemble
+    print_info "Assembling..."
+    local nasm_cmd="nasm -f $nasm_format"
+    [ "$DEBUG" = "1" ] && nasm_cmd="$nasm_cmd -g -F dwarf"
+    
+    if ! $nasm_cmd "$file" -o "$output.o"; then
+        print_error "Assembly failed"
+        exit 1
+    fi
+    
+    # Link
+    print_info "Linking..."
+    local gcc_cmd="gcc -O$optimize"
+    [ "$DEBUG" = "1" ] && gcc_cmd="$gcc_cmd -g"
+    [ "$STATIC" = "1" ] && gcc_cmd="$gcc_cmd -static"
+    [ "$STRIP" = "1" ] && gcc_cmd="$gcc_cmd -s"
+    [ "$PIE" = "1" ] && gcc_cmd="$gcc_cmd -pie" || gcc_cmd="$gcc_cmd -no-pie"
+    [ -n "$LIBS" ] && gcc_cmd="$gcc_cmd -l${LIBS//,/ -l}"
+    
+    if ! $gcc_cmd "$output.o" -o "$output"; then
+        print_error "Linking failed"
+        exit 1
+    fi
+    
+    print_success "Build successful! Output: $output"
+    
+    # Run if not in benchmark or profile mode
+    if [ "$BENCHMARK" != "1" ] && [ "$PROFILE" != "1" ]; then
+        print_info "Running $output..."
+        echo -e "${CYAN}════════════════════════════════════════${NC}"
+        "./$output"
+        local exit_code=$?
+        echo -e "${CYAN}════════════════════════════════════════${NC}"
+        print_info "Program exited with code: $exit_code"
+    elif [ "$BENCHMARK" = "1" ]; then
+        benchmark "$output"
+    elif [ "$PROFILE" = "1" ]; then
+        print_info "Profiling $output..."
+        valgrind --tool=callgrind "./$output"
+        print_success "Profile data saved to callgrind.out.*"
+    fi
+}
+
+# Show log
+show_log() {
+    if [ -f "$LOG_FILE" ]; then
+        echo -e "${CYAN}═══ Log File Contents ═══${NC}"
+        tail -n 50 "$LOG_FILE"
+    else
+        print_warning "Log file not found"
+    fi
+    exit 0
+}
+
+# Clear cache
+clear_cache() {
+    print_info "Clearing cache directory..."
+    rm -rf "$CACHE_DIR"/*
+    print_success "Cache cleared!"
+    exit 0
+}
+
+# Main execution
+main() {
+    init_dirs
+    
+    # Parse arguments
+    POSITIONAL=()
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                usage
+                ;;
+            -v|--version)
+                show_version
+                ;;
+            -u|--update)
+                update_script
+                ;;
+            -r|--repair)
+                repair_script
+                ;;
+            -c|--clean)
+                CLEAN=1
+                shift
+                ;;
+            -d|--debug)
+                DEBUG=1
+                shift
+                ;;
+            -o|--output)
+                OUTPUT="$2"
+                shift 2
+                ;;
+            -O|--optimize)
+                OPTIMIZE="$2"
+                shift 2
+                ;;
+            -A|--arch)
+                ARCH="$2"
+                shift 2
+                ;;
+            -S|--syntax)
+                SYNTAX="$2"
+                shift 2
+                ;;
+            -l|--link)
+                LIBS="$2"
+                shift 2
+                ;;
+            -w|--watch)
+                WATCH=1
+                shift
+                ;;
+            -b|--benchmark)
+                BENCHMARK=1
+                shift
+                ;;
+            -p|--profile)
+                PROFILE=1
+                shift
+                ;;
+            --install-deps)
+                check_deps --auto-install
+                exit 0
+                ;;
+            --show-log)
+                show_log
+                ;;
+            --clear-cache)
+                clear_cache
+                ;;
+            --static)
+                STATIC=1
+                shift
+                ;;
+            --strip)
+                STRIP=1
+                shift
+                ;;
+            --pie)
+                PIE=1
+                shift
+                ;;
+            --no-pie)
+                PIE=0
+                shift
+                ;;
+            *)
+                POSITIONAL+=("$1")
+                shift
+                ;;
+        esac
+    done
+    
+    set -- "${POSITIONAL[@]}"
+    
+    # Check dependencies
+    check_deps
+    
+    # Process file
+    if [ $# -eq 0 ]; then
+        print_error "No input file specified"
+        usage
+    fi
+    
+    local file="$1"
+    local base=$(basename "$file" .asm)
+    
+    if [ "$CLEAN" = "1" ]; then
+        clean_artifacts "$base"
+        exit 0
+    fi
+    
+    if [ "$WATCH" = "1" ]; then
+        watch_mode "$file"
+    else
+        build_and_run "$file"
+    fi
+}
+
+# Run main function
+main "$@"
