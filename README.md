@@ -28,7 +28,7 @@ A powerful, cross-platform assembly language build and run tool that simplifies 
 
 ```bash
 # Download and run the installer
-curl -sL https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/installer.sh | bash
+curl -sL https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/installer.sh -o installer.sh && chmod +x installer.sh && ./installer.sh
 ```
 
 ### Manual Installation
