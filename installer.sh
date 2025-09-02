@@ -203,11 +203,9 @@ install_script() {
         wget -q -O "$TEMP_DIR/$SCRIPT_NAME" "$GITHUB_URL" &
         spinner $!
     else
-        # If neither curl nor wget, use the embedded script
-        print_info "Using embedded version..."
-        cat > "$TEMP_DIR/$SCRIPT_NAME" << 'EMBEDDED_SCRIPT'
-# [The enhanced ASM builder script would be embedded here]
-EMBEDDED_SCRIPT
+        # If neither curl nor wget, show error
+        print_error "Neither curl nor wget found. Please install one of them first."
+        exit 1
     fi
     
     progress_bar 7 10
