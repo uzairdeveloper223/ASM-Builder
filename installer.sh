@@ -190,22 +190,29 @@ install_dependencies() {
 
 # Download and install the main script
 install_script() {
-    print_info "Downloading ASM Builder..."
+    print_info "Installing ASM Builder..."
     progress_bar 6 10
-    
+
     mkdir -p "$TEMP_DIR"
-    
-    # Download the script
-    if command -v curl &>/dev/null; then
-        curl -sL -o "$TEMP_DIR/$SCRIPT_NAME" "$GITHUB_URL" &
-        spinner $!
-    elif command -v wget &>/dev/null; then
-        wget -q -O "$TEMP_DIR/$SCRIPT_NAME" "$GITHUB_URL" &
-        spinner $!
+
+    # Check if we have a local fixed version
+    if [ -f "./asmbuilder" ]; then
+        print_info "Using local version..."
+        cp "./asmbuilder" "$TEMP_DIR/$SCRIPT_NAME"
     else
-        # If neither curl nor wget, show error
-        print_error "Neither curl nor wget found. Please install one of them first."
-        exit 1
+        # Download the script
+        print_info "Downloading from GitHub..."
+        if command -v curl &>/dev/null; then
+            curl -sL -o "$TEMP_DIR/$SCRIPT_NAME" "$GITHUB_URL" &
+            spinner $!
+        elif command -v wget &>/dev/null; then
+            wget -q -O "$TEMP_DIR/$SCRIPT_NAME" "$GITHUB_URL" &
+            spinner $!
+        else
+            # If neither curl nor wget, show error
+            print_error "Neither curl nor wget found. Please install one of them first."
+            exit 1
+        fi
     fi
     
     progress_bar 7 10
