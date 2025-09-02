@@ -14,7 +14,7 @@ CACHE_DIR="$HOME/.cache/asmbuilder"
 LOG_FILE="$CONFIG_DIR/asmbuilder.log"
 GITHUB_RAW="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/refs/heads/main/"
 REMOTE_VERSION_FILE="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/refs/heads/main/version.txt"
-
+uninstaller="uninstaller.sh"
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -298,7 +298,7 @@ uninstall_script() {
     print_info "Downloading uninstaller from GitHub..."
     local temp_uninstaller="/tmp/uninstaller.sh.$$"
 
-    if curl -s -o "$temp_uninstaller" "$GITHUB_RAW/uninstaller.sh"; then
+    if curl -s -o "$temp_uninstaller" "$GITHUB_RAW$uninstaller"; then
         chmod +x "$temp_uninstaller"
         print_info "Executing uninstaller..."
         exec "$temp_uninstaller" "$@"
