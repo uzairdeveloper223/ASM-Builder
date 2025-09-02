@@ -24,14 +24,14 @@ A powerful, cross-platform assembly language build and run tool that simplifies 
 
 ```bash
 # Download and run the installer
-curl -sL https://raw.githubusercontent.com/uzairdeveloper223/ASM-Runner-For-Linux/main/installer.sh | bash
+curl -sL https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/installer.sh | bash
 ```
 
 ### Manual Installation
 
 1. Download the `asmbuilder` script:
 ```bash
-wget https://raw.githubusercontent.com/uzairdeveloper223/ASM-Runner-For-Linux/main/asmbuilder
+wget https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder
 ```
 
 2. Make it executable:
