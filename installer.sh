@@ -20,7 +20,7 @@ SCRIPT_NAME="asmbuilder"
 INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 TEMP_DIR="/tmp/asmbuilder_install_$$"
-GITHUB_URL="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/refs/heads/main/asmbuilder"
+GITHUB_URL="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder"
 
 # Progress bar function
 progress_bar() {
