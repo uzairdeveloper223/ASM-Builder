@@ -1,4 +1,4 @@
-# ASM Builder for Linux
+# ASM Builder for Linux, Windows and MacOS
 
 A powerful, cross-platform assembly language build and run tool that simplifies the process of compiling and executing assembly programs. Supports multiple architectures, syntaxes, and provides advanced features like auto-dependency installation, watch mode, benchmarking, and more.
 
