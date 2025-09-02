@@ -237,7 +237,7 @@ repair_script() {
     
     # Download latest version
     print_info "Downloading latest version..."
-    if curl -s -o "/tmp/$SCRIPT_NAME.new" "$GITHUB_RAW$SCRIPT_NAME"; then
+    if curl -s -o "/tmp/$SCRIPT_NAME.new" "https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder"; then
         mv "/tmp/$SCRIPT_NAME.new" "$0"
         chmod +x "$0"
         print_success "Repair completed successfully!"
