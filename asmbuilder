@@ -12,8 +12,8 @@ SCRIPT_NAME="asmbuilder"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 CACHE_DIR="$HOME/.cache/asmbuilder"
 LOG_FILE="$CONFIG_DIR/asmbuilder.log"
-GITHUB_RAW="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/refs/heads/main"
-REMOTE_VERSION_FILE="$GITHUB_RAW/version.txt"
+GITHUB_RAW="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/refs/heads/main/"
+REMOTE_VERSION_FILE="https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/refs/heads/main/version.txt"
 
 # Colors for output
 RED='\033[0;31m'
