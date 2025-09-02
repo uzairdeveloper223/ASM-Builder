@@ -384,7 +384,6 @@ main() {
     echo -e "  Build and run: ${GREEN}$SCRIPT_NAME test.asm${NC}"
     echo ""
     
-    # Test installation
     if command -v "$SCRIPT_NAME" &>/dev/null; then
         print_success "ASM Builder is ready to use!"
     else
@@ -392,5 +391,4 @@ main() {
     fi
 }
 
-# Run main function
 main "$@"

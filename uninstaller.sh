@@ -373,5 +373,4 @@ main() {
     show_summary
 }
 
-# Run main function
 main "$@"

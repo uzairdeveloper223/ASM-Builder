@@ -3,11 +3,11 @@
 # ===============================
 #   ASM Build & Run Helper
 #   Author: UzairDeveloper223
-#   Version: 1.0.2
+#   Version: 1.0.0
 #   Enhanced Edition
 # ===============================
 
-VERSION="1.0.2"
+VERSION="1.0.0"
 SCRIPT_NAME="asmbuilder"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 CACHE_DIR="$HOME/.cache/asmbuilder"
@@ -78,7 +78,6 @@ detect_arch() {
     echo "$ARCH"
 }
 
-# Check dependencies with auto-install option
 check_deps() {
     print_info "Checking required dependencies..."
     local missing=()

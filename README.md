@@ -310,13 +310,10 @@ Configuration files are stored in `~/.config/asmbuilder/`:
 ### Getting Help
 
 ```bash
-# Show detailed help
 asmbuilder --help
 
-# Show version and system info
 asmbuilder --version
 
-# View logs
 asmbuilder --show-log
 ```
 
