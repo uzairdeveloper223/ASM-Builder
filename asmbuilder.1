@@ -1,0 +1,264 @@
+.TH ASMBUILDER 1 "SEPTEMBER 2025" "ASM Builder 1.0.0" "User Commands"
+.SH NAME
+asmbuilder \- A powerful cross-platform assembly language build and run tool
+.SH SYNOPSIS
+.B asmbuilder
+[\fIOPTIONS\fR] \fIFILE\fR
+.SH DESCRIPTION
+.B ASM Builder
+is a comprehensive tool for compiling and executing assembly language programs. It supports multiple architectures (32-bit, 64-bit, ARM64), various syntaxes (Intel/AT&T), and provides advanced features like auto-dependency installation, watch mode, benchmarking, and self-updating capabilities.
+
+The tool automatically detects the type of assembly file and selects the appropriate linker (GCC for C library-compatible files or LD for direct system calls).
+.SH OPTIONS
+.SS Basic Options
+.TP
+.BR \-h ", " \-\-help
+Display help message and exit
+.TP
+.BR \-v ", " \-\-version
+Show version information and system details
+.TP
+.BR \-u ", " \-\-update
+Check for updates and install if available
+.TP
+.BR \-r ", " \-\-repair
+Repair installation and reinstall dependencies
+.TP
+.B \-\-uninstall
+Uninstall ASM Builder from the system
+.TP
+.BR \-c ", " \-\-clean
+Clean build artifacts for the specified file
+
+.SS Build Options
+.TP
+.BR \-o ", " \-\-output " \fINAME\fR"
+Specify output filename (default: input filename without extension)
+.TP
+.BR \-O ", " \-\-optimize " \fILEVEL\fR"
+Set optimization level (0-3, default: 0)
+.TP
+.BR \-A ", " \-\-arch " \fIARCH\fR"
+Target architecture: 32, 64, or arm64 (default: 64)
+.TP
+.BR \-S ", " \-\-syntax " \fISYNTAX\fR"
+Assembly syntax: intel or att (default: intel)
+.TP
+.BR \-l ", " \-\-link " \fILIBS\fR"
+Link with specified libraries (comma-separated)
+.TP
+.B \-\-static
+Build static binary
+.TP
+.B \-\-strip
+Strip symbols from binary
+.TP
+.B \-\-pie
+Build position-independent executable
+.TP
+.B \-\-no\-pie
+Disable position-independent executable (default)
+
+.SS Development Options
+.TP
+.BR \-d ", " \-\-debug
+Enable debug mode with GDB-compatible output
+.TP
+.BR \-w ", " \-\-watch
+Watch file for changes and rebuild automatically
+.TP
+.BR \-b ", " \-\-benchmark
+Benchmark the compiled program (5 runs average)
+.TP
+.BR \-p ", " \-\-profile
+Generate profiling data with Valgrind
+
+.SS Maintenance Options
+.TP
+.B \-\-install\-deps
+Auto-install missing dependencies
+.TP
+.B \-\-show\-log
+Display the log file contents
+.TP
+.B \-\-clear\-cache
+Clear the cache directory
+.TP
+.B \-\-config
+Open configuration file in default editor
+.SH EXAMPLES
+.SS Basic Usage
+.TP
+Build and run an assembly program:
+.B asmbuilder hello.asm
+.TP
+Specify output filename:
+.B asmbuilder \-o myprogram hello.asm
+.TP
+Build with optimization:
+.B asmbuilder \-O2 \-o optimized hello.asm
+
+.SS Advanced Usage
+.TP
+Build for 32-bit architecture:
+.B asmbuilder \-A 32 program.asm
+.TP
+Build with debug symbols:
+.B asmbuilder \-d program.asm
+.TP
+Watch mode for development:
+.B asmbuilder \-w program.asm
+.TP
+Benchmark performance:
+.B asmbuilder \-b program.asm
+.TP
+Link with math library:
+.B asmbuilder \-l m calculator.asm
+
+.SS Maintenance
+.TP
+Check for updates:
+.B asmbuilder \-\-update
+.TP
+Repair installation:
+.B asmbuilder \-\-repair
+.TP
+Uninstall completely:
+.B asmbuilder \-\-uninstall
+.TP
+Auto-install dependencies:
+.B asmbuilder \-\-install\-deps
+.SH FILE TYPES
+ASM Builder automatically detects assembly file types:
+
+.B GCC-compatible files
+(containing \fBglobal main\fR):
+.RS
+- Uses GCC linker
+- Supports C library functions
+- Adds .note.GNU-stack section automatically
+- Example: Files using printf(), scanf(), etc.
+.RE
+
+.B LD-compatible files
+(containing \fBglobal _start\fR):
+.RS
+- Uses LD linker directly
+- Direct system calls without C library
+- Smaller binaries, faster execution
+- Example: Files using syscall instructions
+.RE
+.SH CONFIGURATION
+Configuration files are stored in \fB~/.config/asmbuilder/\fR:
+.RS
+- \fBconfig.conf\fR: Main configuration file
+- \fBasmbuilder.log\fR: Operation logs
+.RE
+
+Cache files are stored in \fB~/.cache/asmbuilder/\fR
+.SH DEPENDENCIES
+Required dependencies (auto-installed by installer):
+.RS
+- \fBNASM\fR: Netwide Assembler
+- \fBGCC\fR: GNU Compiler Collection
+- \fBLD\fR: GNU Linker
+- \fBmake\fR: Build automation tool
+- \fBcurl\fR: For updates and downloads
+.RE
+.SH INSTALLATION
+.SS Quick Install
+curl -sL https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/installer.sh | bash
+
+.SS Manual Install
+.RS
+1. Download: wget https://raw.githubusercontent.com/uzairdeveloper223/ASM-Builder/main/asmbuilder
+2. Make executable: chmod +x asmbuilder
+3. Install: sudo mv asmbuilder /usr/local/bin/
+.RE
+.SH UNINSTALLATION
+.SS Using Built-in Uninstaller
+.RS
+- From anywhere: \fBasmbuilder \-\-uninstall\fR
+- Direct: \fB./uninstaller.sh\fR
+.RE
+
+.SS Manual Uninstallation
+.RS
+1. Remove script: sudo rm /usr/local/bin/asmbuilder
+2. Remove config: rm -rf ~/.config/asmbuilder/
+3. Remove cache: rm -rf ~/.cache/asmbuilder/
+.RE
+
+The uninstaller creates backups in \fB~/.asmbuilder-backups/\fR before removal.
+.SH TROUBLESHOOTING
+.SS Common Issues
+.TP
+.B Permission Denied
+Make sure the script is executable:
+chmod +x asmbuilder
+.TP
+.B Dependencies Missing
+Run auto-install:
+asmbuilder \-\-install\-deps
+.TP
+.B PATH Issues
+Ensure installation directory is in PATH:
+export PATH="$PATH:/usr/local/bin"
+.TP
+.B Architecture Mismatch
+Specify correct architecture:
+asmbuilder \-A 64 program.asm
+
+.SS Getting Help
+.TP
+Show detailed help:
+.B asmbuilder \-\-help
+.TP
+Show version and system info:
+.B asmbuilder \-\-version
+.TP
+View logs:
+.B asmbuilder \-\-show\-log
+.SH EXIT STATUS
+.TP
+.B 0
+Success
+.TP
+.B 1
+General error (missing file, failed compilation, etc.)
+.TP
+.B 2
+Permission denied or sudo required
+.SH ENVIRONMENT
+.TP
+.B HOME
+User's home directory for configuration and cache
+.TP
+.B PATH
+System PATH for locating installed script and dependencies
+.SH FILES
+.TP
+.B ~/.config/asmbuilder/config.conf
+Main configuration file
+.TP
+.B ~/.config/asmbuilder/asmbuilder.log
+Operation log file
+.TP
+.B ~/.cache/asmbuilder/
+Cache directory for temporary files
+.TP
+.B ~/.asmbuilder-backups/
+Backup directory created during updates/uninstalls
+.SH SEE ALSO
+.BR nasm (1),
+.BR gcc (1),
+.BR ld (1),
+.BR make (1)
+.SH AUTHOR
+UzairDeveloper223 <contact@uzair.is-a.dev>
+.SH BUGS
+Report bugs at: https://github.com/uzairdeveloper223/ASM-Builder/issues
+.SH VERSION
+Current version: 1.0.2
+.SH COPYRIGHT
+Copyright \(co 2025 UzairDeveloper223. Licensed under MIT License.
