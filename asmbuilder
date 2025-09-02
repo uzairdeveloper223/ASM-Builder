@@ -3,11 +3,11 @@
 # ===============================
 #   ASM Build & Run Helper
 #   Author: UzairDeveloper223
-#   Version: 1.0.0
+#   Version: 1.0.2
 #   Enhanced Edition
 # ===============================
 
-VERSION="1.0.0"
+VERSION="1.0.2"
 SCRIPT_NAME="asmbuilder"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 CACHE_DIR="$HOME/.cache/asmbuilder"
@@ -157,52 +157,50 @@ install_deps() {
 
 # Enhanced usage function
 usage() {
-    cat <<EOF
-${CYAN}╔══════════════════════════════════════════════════════════════╗
-║                   ASM Builder v$VERSION                       ║
-║                 Enhanced Multi-Platform Edition               ║
-╚══════════════════════════════════════════════════════════════╝${NC}
+echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗"
+echo -e "║                   ASM Builder v$VERSION                       ║"
+echo -e "║                 Enhanced Multi-Platform Edition               ║"
+echo -e "╚══════════════════════════════════════════════════════════════╝${NC}"
 
-${GREEN}Usage:${NC} $SCRIPT_NAME [options] <file.asm>
+echo -e "${GREEN}Usage:${NC} $SCRIPT_NAME [options] <file.asm>"
 
-${YELLOW}Options:${NC}
-  -h, --help              Show this help message
-  -v, --version           Show script version
-  -u, --update            Check for updates and install if available
-  -r, --repair            Repair and reinstall the builder
-  -c, --clean             Clean build artifacts
-  -d, --debug             Enable debug mode
-  -o, --output <name>     Specify output filename
-  -O, --optimize <level>  Set optimization level (0-3)
-  -A, --arch <arch>       Target architecture (32/64/arm64)
-  -S, --syntax <syntax>   Assembly syntax (intel/att)
-  -l, --link <libs>       Link with libraries (comma-separated)
-  -w, --watch             Watch file for changes and rebuild
-  -b, --benchmark         Benchmark the compiled program
-  -p, --profile           Generate profiling information
-  --install-deps          Auto-install missing dependencies
-  --show-log              Display log file
-  --clear-cache           Clear cache directory
-  --config                Open configuration
+echo -e "${YELLOW}Options:${NC}"
+echo -e "-h, --help              Show this help message"
+echo -e "-v, --version           Show script version"
+echo -e "-u, --update            Check for updates and install if available"
+echo -e "-r, --repair            Repair and reinstall the builder"
+echo -e "-c, --clean             Clean build artifacts"
+echo -e "-d, --debug             Enable debug mode"
+echo -e "-o, --output <name>     Specify output filename"
+echo -e "-O, --optimize <level>  Set optimization level (0-3)"
+echo -e "-A, --arch <arch>       Target architecture (32/64/arm64)"
+echo -e "-S, --syntax <syntax>   Assembly syntax (intel/att)"
+echo -e "-l, --link <libs>       Link with libraries (comma-separated)"
+echo -e "-w, --watch             Watch file for changes and rebuild"
+echo -e "-b, --benchmark         Benchmark the compiled program"
+echo -e "-p, --profile           Generate profiling information"
+echo -e "--install-deps          Auto-install missing dependencies"
+echo -e "--show-log              Display log file"
+echo -e "--clear-cache           Clear cache directory"
+echo -e "--config                Open configuration"
 
-${YELLOW}Build Options:${NC}
-  --static                Build static binary
-  --strip                 Strip symbols from binary
-  --pie                   Build position-independent executable
-  --no-pie                Disable PIE (default)
+echo -e "${YELLOW}Build Options:${NC}"
+echo -e "--static                Build static binary"
+echo -e "--strip                 Strip symbols from binary"
+echo -e  "--pie                   Build position-independent executable"
+echo -e "--no-pie                Disable PIE (default)"
 
-${YELLOW}Examples:${NC}
-  $SCRIPT_NAME hello.asm
-  $SCRIPT_NAME -o myprogram -O2 program.asm
-  $SCRIPT_NAME -A 32 -S intel code.asm
-  $SCRIPT_NAME -w -d program.asm
-  $SCRIPT_NAME --repair
+echo -e "${YELLOW}Examples:${NC}"
+echo -e "$SCRIPT_NAME hello.asm"
+echo -e "$SCRIPT_NAME -o myprogram -O2 program.asm"
+echo -e "$SCRIPT_NAME -A 32 -S intel code.asm"
+echo -e "$SCRIPT_NAME -w -d program.asm"
+echo -e "$SCRIPT_NAME --repair"
 
-${CYAN}Author:${NC} UzairDeveloper223
-${CYAN}Email:${NC} contact@uzair.is-a.dev
-${CYAN}Website:${NC} uzair.is-a.dev
+echo -e "${CYAN}Author:${NC} UzairDeveloper223"
+echo -e "${CYAN}Email:${NC} contact@uzair.is-a.dev"
+echo -e "${CYAN}Website:${NC} uzair.is-a.dev"
 
-EOF
     exit 0
 }
 
