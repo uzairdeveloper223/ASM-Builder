@@ -3,7 +3,7 @@
 # ===============================
 #   ASM Builder Installer
 #   Author: UzairDeveloper223
-#   Version: 1.0.2
+#   Version: 1.0.1
 # ===============================
 
 # Colors
@@ -60,7 +60,7 @@ print_header() {
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║                    ASM Builder Installer                     ║
-║                        Version 1.0.2                         ║
+║                        Version 1.0.1                         ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
@@ -240,7 +240,7 @@ EMBEDDED_SCRIPT
     # Create initial configuration file
     cat > "$CONFIG_DIR/config.conf" << EOF
 # ASM Builder Configuration
-VERSION=1.0.2
+VERSION=1.0.1
 INSTALL_DATE=$(date)
 INSTALL_PATH=$INSTALL_DIR/$SCRIPT_NAME
 DEFAULT_ARCH=64
@@ -367,7 +367,7 @@ main() {
     echo -e "${CYAN}Installation Summary:${NC}"
     echo -e "  • Installed to: ${GREEN}$INSTALL_DIR/$SCRIPT_NAME${NC}"
     echo -e "  • Config directory: ${GREEN}$CONFIG_DIR${NC}"
-    echo -e "  • Version: ${GREEN}1.0.2${NC}"
+    echo -e "  • Version: ${GREEN}1.0.1${NC}"
     echo ""
     echo -e "${CYAN}Usage:${NC}"
     echo -e "  ${GREEN}$SCRIPT_NAME <file.asm>${NC}    - Build and run an assembly file"

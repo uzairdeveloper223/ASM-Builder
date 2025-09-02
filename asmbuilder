@@ -3,11 +3,11 @@
 # ===============================
 #   ASM Build & Run Helper
 #   Author: UzairDeveloper223
-#   Version: 1.0.2
+#   Version: 1.0.1
 #   Enhanced Edition
 # ===============================
 
-VERSION="1.0.2"
+VERSION="1.0.1"
 SCRIPT_NAME="asmbuilder"
 CONFIG_DIR="$HOME/.config/asmbuilder"
 CACHE_DIR="$HOME/.cache/asmbuilder"
@@ -459,6 +459,46 @@ clear_cache() {
     exit 0
 }
 
+# Open configuration
+open_config() {
+    local config_file="$CONFIG_DIR/config.conf"
+
+    # Create config file if it doesn't exist
+    if [ ! -f "$config_file" ]; then
+        print_info "Creating default configuration file..."
+        cat > "$config_file" << EOF
+# ASM Builder Configuration
+VERSION=$VERSION
+INSTALL_DATE=$(date)
+DEFAULT_ARCH=64
+DEFAULT_SYNTAX=intel
+DEFAULT_OPTIMIZE=0
+AUTO_UPDATE_CHECK=true
+LOG_LEVEL=info
+EOF
+        print_success "Configuration file created at $config_file"
+    fi
+
+    # Try to open with available editor
+    if command -v nano &>/dev/null; then
+        print_info "Opening configuration with nano..."
+        nano "$config_file"
+    elif command -v vim &>/dev/null; then
+        print_info "Opening configuration with vim..."
+        vim "$config_file"
+    elif command -v vi &>/dev/null; then
+        print_info "Opening configuration with vi..."
+        vi "$config_file"
+    else
+        print_info "Configuration file location: $config_file"
+        print_info "Available editors: nano, vim, vi"
+        print_warning "No supported editor found. Please edit manually."
+        echo -e "${CYAN}Configuration file: $config_file${NC}"
+    fi
+
+    exit 0
+}
+
 # Main execution
 main() {
     init_dirs
@@ -528,6 +568,9 @@ main() {
                 ;;
             --clear-cache)
                 clear_cache
+                ;;
+            --config)
+                open_config
                 ;;
             --static)
                 STATIC=1
